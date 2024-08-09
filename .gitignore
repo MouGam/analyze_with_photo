@@ -1,3 +1,6 @@
+analyze_with_photo_server/counsels/
+analyze_with_photo_server/diagnoses/
+
 # Logs
 logs
 *.log
