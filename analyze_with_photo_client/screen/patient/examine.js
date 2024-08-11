@@ -61,7 +61,6 @@ const style = StyleSheet.create({
 
 export default function Examine({navigation}){
 
-    console.log(`openai API key: ${OPENAI_API_KEY.substring(0, 10)}...`)
     //각 대화의 배열을 저장하는 state
     const [convList, setConvList] = useState([]);
 
@@ -78,7 +77,8 @@ export default function Examine({navigation}){
     const openai_chat_start = async ()=>{
         const systemContent = "You are a specialist doctor at a general hospital who reviews photos of the affected area uploaded by patients, analyzes their symptoms, and recommends which hospital to visit and what treatment to receive." + 
         "You are a chatbot doctor treating patients at a general hospital. Provide clear and positive responses based on the patient's symptoms, and respond concisely to ensure the conversation is easy to understand. First, ask the patient what symptoms they have, and then proceed with the diagnosis following the general protocol used by doctors. When asking the patient questions, ask only one question at a time. Do not inform the patient of any suspected diseases or diagnoses in the first response; instead, provide information about the suspected diseases and diagnoses after obtaining sufficient answers about the patient's symptoms. During the diagnosis, you may request a photo of the affected area for a more detailed examination. Help decide and implement the best treatment methods based on the diagnosis results. Respond in one sentence whenever possible. If the patient asks about a specific medication, provide information about that medication. At the end, guide the patient on which department of the hospital to visit." + 
-        "And, You need to speek korean.";
+        "And, You need to speek korean."
+        ;
         const completion = await openai.chat.completions.create({
             messages: [{ role: "system", content: systemContent }],
             model: OPENAI_MODEL,
@@ -145,6 +145,7 @@ export default function Examine({navigation}){
 
     useEffect(()=>{
         openai_chat_start();
+        console.log(`openai API key: ${OPENAI_API_KEY}...`)
     }, []);
 
     return(<View style={globalStyle.container}>

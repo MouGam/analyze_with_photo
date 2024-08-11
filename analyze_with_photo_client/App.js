@@ -19,9 +19,10 @@ import Diagnosis from './screen/medical_staff/diagnosis';
 import store from "./redux/store"
 
 const Stack = createNativeStackNavigator();
-
+import {SERVER_IP, SERVER_PORT} from "@env";
 
 export default function App(){
+  console.log(`ip: ${SERVER_IP}, port: ${SERVER_PORT}`);
   return (
     // store는 redux store
     <Provider store={store}> 

@@ -5,7 +5,7 @@ const uuid = require("uuid");
 /* data에 해당하는 js object 데이터를 path에 저장하고 파일 이름을 반환
  */
 async function writeJsonFile(PATH, data){
-    const name = `${Date.now()}${uuid.v4()}.json`;
+    const name = `${Date.now()}.json`;
     // const conversation = {};
     // data.conversation.forEach((val, idx)=>{
     //     conversation[idx] = val;

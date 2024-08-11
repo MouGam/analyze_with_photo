@@ -6,8 +6,8 @@ const {Diagnoses} = require('./models/diagnose');
 require('dotenv').config();
 
 // Option 3: Passing parameters separately (other dialects)
-const sequelize = new Sequelize('', process.env.AWS_RDS_USER, process.env.AWS_RDS_PASSWORD, {
-  host: process.env.AWS_RDS_ENDPOINT,
+const sequelize = new Sequelize('', process.env.DB_USER, process.env.DB_PW, {
+  host: process.env.DB_ENDPOINT,
   dialect: 'postgres'
 });
 const db = {};

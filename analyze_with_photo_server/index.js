@@ -10,8 +10,11 @@ const medicalStaffRouter = require('./router/medical_staff');
 
 const {sequelize} = require('./sequelize/index');
 
+require('dotenv').config();
+
+
 sequelize.sync({force:false})
-.then(()=>{
+.then(()=>{ 
     console.log('db연결 성공');
 })
 .catch((err)=>{
@@ -19,7 +22,7 @@ sequelize.sync({force:false})
 });
 
 const app = express();
-const port = 3000;
+const port = process.env.SERVER_PORT;
 
 //cors 미들웨어는 같은네트워크 안에서 동작할때만
 app.use(cors());
