@@ -1,7 +1,7 @@
 {
-  "name": "telemedicine_server",
+  "name": "analyze_with_photo_server",
   "version": "0.0.1",
-  "description": "비대면원격진료 서비스 서버",
+  "description": "사진의료분석 서비스 서버",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

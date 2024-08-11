@@ -126,7 +126,7 @@ export default function Login({navigation}){
 
         <View style={style.titleContainer}>
             <Text style={style.title}>
-                진료 도우미
+                포토 AI 의료도우미
             </Text>
         </View>
 

@@ -50,6 +50,7 @@ request 종류
 
 */
 async function sendToServer(request, identification, data){
+    console.log(`ip: ${SERVER_IP}, port: ${SERVER_PORT}`);
     try{
         const submit = {
             identification:identification,

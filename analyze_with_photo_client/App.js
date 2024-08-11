@@ -20,10 +20,8 @@ import store from "./redux/store"
 
 const Stack = createNativeStackNavigator();
 
-// const LoginContext = createContext();
 
 export default function App(){
-  
   return (
     // store는 redux store
     <Provider store={store}> 

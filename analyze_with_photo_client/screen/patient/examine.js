@@ -4,8 +4,7 @@ import { useSelector } from 'react-redux';
 
 import OpenAI from "openai";
 
-// import {OPENAI_API_KEY, OPENAI_ORGANIZATION, SERVER_IP} from "@env";
-import {OPENAI_API_KEY} from "@env";
+import {OPENAI_API_KEY, OPENAI_MODEL} from "@env";
 
 import sendToServer from "../../functions/communicateWithServer";
 
@@ -61,6 +60,8 @@ const style = StyleSheet.create({
 });
 
 export default function Examine({navigation}){
+
+    console.log(`openai API key: ${OPENAI_API_KEY.substring(0, 10)}...`)
     //각 대화의 배열을 저장하는 state
     const [convList, setConvList] = useState([]);
 
@@ -71,15 +72,16 @@ export default function Examine({navigation}){
     const chatRef = useRef(null);
 
     const openai = new OpenAI({
-        // organization:OPENAI_ORGANIZATION,
         apiKey:OPENAI_API_KEY
     });
 
     const openai_chat_start = async ()=>{
-        const systemContent = "You are a chatbot acting as a doctor who questions patients. Based on the symptoms experienced by the patient, you identify diseases or health issues to maintain their health and treat diseases. In this process, you listen to the patient's medical history and, if necessary, may request physical examinations or diagnostic tests to make an accurate diagnosis. Based on the diagnosis results, you help decide and implement the best treatment methods. Treatment options may include prescribing medication, surgery, lifestyle adjustments, and physical therapy. If necessary, you can also counsel the patient or their family about the disease, treatment options, and methods of health management. Provide clear, concise, and positive guidance, with brief responses to keep conversations understandable for the elderly user. Do generate responses as short and concise as possible. When generating a response, you must ask only one question at a time."
+        const systemContent = "You are a specialist doctor at a general hospital who reviews photos of the affected area uploaded by patients, analyzes their symptoms, and recommends which hospital to visit and what treatment to receive." + 
+        "You are a chatbot doctor treating patients at a general hospital. Provide clear and positive responses based on the patient's symptoms, and respond concisely to ensure the conversation is easy to understand. First, ask the patient what symptoms they have, and then proceed with the diagnosis following the general protocol used by doctors. When asking the patient questions, ask only one question at a time. Do not inform the patient of any suspected diseases or diagnoses in the first response; instead, provide information about the suspected diseases and diagnoses after obtaining sufficient answers about the patient's symptoms. During the diagnosis, you may request a photo of the affected area for a more detailed examination. Help decide and implement the best treatment methods based on the diagnosis results. Respond in one sentence whenever possible. If the patient asks about a specific medication, provide information about that medication. At the end, guide the patient on which department of the hospital to visit." + 
+        "And, You need to speek korean.";
         const completion = await openai.chat.completions.create({
             messages: [{ role: "system", content: systemContent }],
-            model: "gpt-3.5-turbo",
+            model: OPENAI_MODEL,
           });
         
         // console.log(completion.choices[0].message);
@@ -90,7 +92,7 @@ export default function Examine({navigation}){
     const openai_chat = async (chatList)=>{
         const completion = await openai.chat.completions.create({
             messages: chatList,
-            model: "gpt-3.5-turbo",
+            model: OPENAI_MODEL,
           });
         
         return completion.choices[0].message;
@@ -116,7 +118,7 @@ export default function Examine({navigation}){
     const conversationEnd = async ()=>{
         Alert.alert(
             title='대화를 제출하시겠습니까?',
-            message='대화의 내용에 따라 제출이 거부될 수 있습니다. 해당 내용은 오직 진단을 내리는 의료진만 열람이 가능합니다.',
+            message='대화의 내용에 따라 제출이 거부될 수 있습니다.',
             buttons=[
                 {text:'네', onPress: async ()=>{
                     const identification ={
