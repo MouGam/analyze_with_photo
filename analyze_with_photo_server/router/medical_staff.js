@@ -46,9 +46,9 @@ router.post('/requestCounsels', async(req, res, next)=>{
 router.post('/requestCounselsPython', async(req, res, next)=>{
     try{
         const counselList  = await getCounsels();
-        // const _counselList = await getCounselFromFolder(counselList);
+        const _counselList = await getCounselFromFolder(counselList);
         // console.log(counselList)
-        res.json({result:0, data:{counselList:counselList}});
+        res.json({result:0, data:{counselList:_counselList}});
     }catch(err){
         console.error(err);
         res.json({result:2, message:err});
