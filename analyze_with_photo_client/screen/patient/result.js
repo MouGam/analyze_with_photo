@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Button, Dimensions,ScrollView, Alert, Image } from 'react-native';
+import { StyleSheet, Text, View, Button, Dimensions,ScrollView, Alert, Image, Platform } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import globalStyle from '../globalStyle.js';
@@ -113,12 +113,12 @@ export default function Result({navigation, route}){
             {conversation.map((e, idx)=>{
                 // system은 배제하도록 함
                 if(e.role === 'user'){
+                    console.log(e.content[1].image_url)
                     return (<View style={style.innerChatting} key={idx}>
                         <Text style={style.innerChattingUser}>
                             {e.content[0].text}
                         </Text>
-                        
-                        {e.content[1] ? <Image source={e.content[1].image_url} style={{ width: 200, height: 200 }} /> : null}
+                        {e.content[1] ? <Image source={Platform.OS !=='ios' ? {uri:e.content[1].image_url.url} :{url:e.content[1].image_url.url}} style={{ width: 200, height: 200 }} /> : null}
                     </View>);
                 }else if(e.role === 'assistant'){
                     return (<View style={style.innerChatting} key={idx}>

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Button, Dimensions,ScrollView, Alert, Image } from 'react-native';
+import { StyleSheet, Text, View, Button, Dimensions,ScrollView, Alert, Image, Platform } from 'react-native';
 import { useEffect, useState } from 'react';
 import globalStyle from '../globalStyle.js';
 import sendToServer from '../../functions/communicateWithServer.js';
@@ -130,7 +130,7 @@ export default function Detail({navigation, route}){
                             {e.content[0].text}
                         </Text>
                         
-                        {e.content[1] ? <Image source={e.content[1].image_url} style={{ width: 200, height: 200 }} /> : null}
+                        {e.content[1] ? <Image source={Platform.OS !=='ios' ? {uri:e.content[1].image_url.url} :{url:e.content[1].image_url.url}} style={{ width: 200, height: 200 }} /> : null}
                     </View>);
                 }else if(e.role === 'assistant'){
                     return (<View style={style.innerChatting} key={idx}>

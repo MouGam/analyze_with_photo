@@ -83,7 +83,8 @@ export default function Examine({navigation}){
     };
 
     const openai = new OpenAI({
-        apiKey:OPENAI_API_KEY
+        apiKey:OPENAI_API_KEY,
+        dangerouslyAllowBrowser: true 
     });
 
     const openai_chat_start = async ()=>{
@@ -209,7 +210,7 @@ export default function Examine({navigation}){
                                 {e.content[0].text}
                             </Text>
                             
-                            {e.content[1] ? <Image source={e.content[1].image_url} style={{ width: 200, height: 200 }} /> : null}
+                            {e.content[1] ? <Image source={Platform.OS !=='ios' ? {uri:e.content[1].image_url.url} :{url:e.content[1].image_url.url}} style={{ width: 200, height: 200 }} /> : null}
                         </View>);
                     }else if(e.role === 'assistant'){
                         return (<View style={style.innerChatting} key={idx}>

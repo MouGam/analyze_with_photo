@@ -45,11 +45,5 @@ export default function MedicalStaffMain({navigation}){
             <Text>결과 리스트</Text>
             {counsels}
         </ScrollView>
-        <Button 
-        title='리스트 창으로' 
-        onPress={()=>{
-            navigation.navigate('list');
-        }}/>
-
     </View>);
 }
