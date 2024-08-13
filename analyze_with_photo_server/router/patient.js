@@ -33,7 +33,9 @@ router.use(async(req, res, next)=>{
 // db에 path를 저장하고 파일을 저장
 router.post('/examine', async(req, res, next)=>{
     try{
+        console.log(1111111111);
         const filename = await writeJsonFile("counsels", req.body.data);
+        console.log(2222222222);
         const result = await uploadCounsel(filename, res.locals.userId);
         res.json(result);
     }catch(err){

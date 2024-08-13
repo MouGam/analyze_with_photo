@@ -1,7 +1,7 @@
-import { StyleSheet, Text, View, Button, TextInput, Dimensions, Alert, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, Button, TextInput, Dimensions, Alert, ScrollView, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import {useState, useEffect, useRef} from 'react';
 import { useSelector } from 'react-redux';
-
+import * as ImagePicker from 'expo-image-picker';
 import OpenAI from "openai";
 
 import {OPENAI_API_KEY, OPENAI_MODEL} from "@env";
@@ -9,55 +9,7 @@ import {OPENAI_API_KEY, OPENAI_MODEL} from "@env";
 import sendToServer from "../../functions/communicateWithServer";
 
 import globalStyle from '../globalStyle';
-
-const {width:screenWidth, height:screenHeight} = Dimensions.get('window');
-
-const style = StyleSheet.create({
-    navBar:{
-        flex:1
-    },
-    title:{
-        flex:1,
-        textAlign:'center'
-    },
-    chattingBox:{
-        flex:12,
-        borderColor:'black',
-        borderWidth:1,
-        marginBottom:screenHeight*0.05,
-        justifyContent:'space-between'
-    },
-    conversationWarpper:{
-
-    },
-    innerChatting:{
-        flexDirection:'column',
-        borderColor:'black',
-        borderWidth:1,
-        padding:5,
-        margin:5
-    },
-    innerChattingBot:{
-        textAlign:'left'
-        
-    },
-    innerChattingUser:{
-        textAlign:'right'
-    },
-    
-    userChattingWarpper:{
-        flexDirection:'row',
-        alignItems:'center',
-        margin:5
-    },
-    chattingText:{
-        fontSize:30,
-        borderColor:'black',
-        borderWidth:1,
-        padding:5,
-        margin:5
-    }
-});
+import style from '../styles';
 
 export default function Examine({navigation}){
 
@@ -66,17 +18,78 @@ export default function Examine({navigation}){
 
     const [userText, setUserText] = useState('');
 
+    const [image, setImage] = useState(null);
+
     const userInfo = useSelector(state=>state.setInformation);
 
     const chatRef = useRef(null);
+    const scrollRef = useRef(null);
+
+    const getPhoto = async ()=>{
+        const permissionResImage = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (permissionResImage.granted === false) {
+            alert("사진 접근 권한이 없습니다!");
+            return;
+        }
+        const permissionResCamera = await ImagePicker.requestCameraPermissionsAsync();
+        if (permissionResCamera.granted === false) {
+            alert("사진 접근 권한이 없습니다!");
+            return;
+        }
+        Alert.alert(
+            title='촬영 혹은 앨범에서 이미지 선택',
+            message='',
+            buttons=[
+                {text:'촬영', onPress: async ()=>{
+                    let result = await ImagePicker.launchCameraAsync({
+                        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                        allowsEditing: true,
+                        aspect: [4, 3],
+                        quality: 1,
+                        base64: true,
+                    });
+
+                    if (!result.canceled) {
+                        setImage(result.assets[0]);
+                    }
+                }},
+                {text:'앨범에서 이미지 선택', onPress:async ()=>{
+                    let result = await ImagePicker.launchImageLibraryAsync({
+                        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                        allowsEditing: true,
+                        aspect: [4, 3],
+                        quality: 1,
+                        base64: true,
+                    });
+
+                    if (!result.canceled) {
+                        setImage(result.assets[0]);
+                    }
+                }},
+            ]
+        )
+        // console.log(result.assets[0].base64);
+        /* result(ImagePicker.launchImageLibraryAsync)의 반환값:
+        {
+            canceled:boolen,
+            assets:[
+                {
+                    "uri", "mimeType", "base64", "duration", "type", "assetId", "fileSize", "exif", "fileName", "width", "height"
+                }
+            ]
+        }
+        이중 base64에는 base64방식으로 인코딩된 데이터가 존재함
+        */
+    };
 
     const openai = new OpenAI({
         apiKey:OPENAI_API_KEY
     });
 
     const openai_chat_start = async ()=>{
-        const systemContent = "You are a specialist doctor at a general hospital who reviews photos of the affected area uploaded by patients, analyzes their symptoms, and recommends which hospital to visit and what treatment to receive." + 
-        "You are a chatbot doctor treating patients at a general hospital. Provide clear and positive responses based on the patient's symptoms, and respond concisely to ensure the conversation is easy to understand. First, ask the patient what symptoms they have, and then proceed with the diagnosis following the general protocol used by doctors. When asking the patient questions, ask only one question at a time. Do not inform the patient of any suspected diseases or diagnoses in the first response; instead, provide information about the suspected diseases and diagnoses after obtaining sufficient answers about the patient's symptoms. During the diagnosis, you may request a photo of the affected area for a more detailed examination. Help decide and implement the best treatment methods based on the diagnosis results. Respond in one sentence whenever possible. If the patient asks about a specific medication, provide information about that medication. At the end, guide the patient on which department of the hospital to visit." + 
+        const systemContent = "You are a chatbot doctor treating patients at a general hospital. Provide clear and positive responses based on the patient's symptoms, and respond concisely to ensure the conversation is easy to understand. First, ask the patient what symptoms they have, and then proceed with the diagnosis following the general protocol used by doctors. When asking the patient questions, ask only one question at a time. Do not inform the patient of any suspected diseases or diagnoses in the first response; instead, provide information about the suspected diseases and diagnoses after obtaining sufficient answers about the patient's symptoms. During the diagnosis, you may request a photo of the affected area for a more detailed examination. Help decide and implement the best treatment methods based on the diagnosis results. Respond in one sentence whenever possible. If the patient asks about a specific medication, provide information about that medication. Finally, guide the patient on the suspected disease and how to proceed, including which department of the hospital to visit." + 
+        "And, When you get photos, "+
+        "You are a specialist doctor at a general hospital who reviews photos of the affected area uploaded by patients, analyzes their symptoms, and provides guidance on which hospital to visit and what treatment to receive. If a patient uploads a photo that is not related to their symptoms or condition, you may request them to upload the correct photo. If the patient does not have a photo, proceed with the consultation using only the conversation." + 
         "And, You need to speek korean."
         ;
         const completion = await openai.chat.completions.create({
@@ -107,13 +120,27 @@ export default function Examine({navigation}){
             return;
         else if(text ==='end')
             return conversationEnd();
-        convList.push({role:'user', content:text});
+        convList.push({role:'user', content:[{type:"text", text:text}]});
 
         const gptchat = await openai_chat(convList);
 
         setConvList(e=>[...e, gptchat]);
     }
 
+    const userChatWithPhoto = async (text, convList, photo)=>{
+        if(text ==='end')
+            return conversationEnd();
+        convList.push({role:'user', content:[
+            {type:"text", text:text},
+            {type:"image_url",
+                image_url:{ "url":`data:image/jpeg;base64,${photo.base64}`}
+            },
+        ]});
+
+        const gptchat = await openai_chat(convList);
+
+        setConvList(e=>[...e, gptchat]);
+    }
 
     const conversationEnd = async ()=>{
         Alert.alert(
@@ -144,11 +171,18 @@ export default function Examine({navigation}){
     }
 
     useEffect(()=>{
+        setTimeout(()=>{
+            scrollRef.current.scrollToEnd({animated:true});
+        }, 500);
+    }, [convList]);
+
+    useEffect(()=>{
         openai_chat_start();
         console.log(`openai API key: ${OPENAI_API_KEY}...`)
     }, []);
 
-    return(<View style={globalStyle.container}>
+    return(<KeyboardAvoidingView style={globalStyle.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
         <Button
         style={style.navBar}
         title='환자 메인 창으로' 
@@ -164,15 +198,18 @@ export default function Examine({navigation}){
         <View style={style.chattingBox}>
 
             {/* 모든 채팅이 올라오는 곳 */}
-            <ScrollView style={style.conversationWarpper}>
+            <ScrollView style={style.conversationWarpper} ref={scrollRef}>
                 {/* 이 범위 안쪽에서 스크롤 가능하도록 */}
                 {convList.map((e, idx)=>{
+                    scrollRef.current.scrollToEnd({animated:true});
                     // system은 배제하도록 함
                     if(e.role === 'user'){
                         return (<View style={style.innerChatting} key={idx}>
                             <Text style={style.innerChattingUser}>
-                                {e.content}
+                                {e.content[0].text}
                             </Text>
+                            
+                            {e.content[1] ? <Image source={e.content[1].image_url} style={{ width: 200, height: 200 }} /> : null}
                         </View>);
                     }else if(e.role === 'assistant'){
                         return (<View style={style.innerChatting} key={idx}>
@@ -187,7 +224,7 @@ export default function Examine({navigation}){
             {/* 유저가 채팅 치는 부분 */}
             <View style={style.userChattingWarpper}>
                 <TextInput 
-                    style={globalStyle.input} 
+                    style={style.inputChat} 
                     onChangeText={
                         (event)=>{
                             setUserText(event);
@@ -202,17 +239,31 @@ export default function Examine({navigation}){
                     blurOnSubmit={false}
                     autoCapitalize={'none'}
                 />
-                <Button 
-                    // 채팅 치면?
-                    onPress={()=>{
-                        userChat(userText, convList);
-                        setUserText('');
-                    }}
-                    style={style.chatSendButton}
-                    title={'전송'}
-                />
+                <View style={style.buttonsWarpper}>
+                    <Button 
+                        // 채팅 치면?
+                        onPress={()=>{
+                            getPhoto();
+                        }}
+                        style={style.chatSendButton}
+                        title={'사진 업로드'}
+                    />
+                    <Button
+                        onPress={async ()=>{
+                            if(!image)
+                                await userChat(userText, convList);
+                            else
+                                await userChatWithPhoto(userText, convList, image);
+                            setUserText('');
+                            setImage(null);
+                        }}
+                        style={style.chatSendButton}
+                        title={'전송'}
+                    />
+                </View>
             </View>
         </View>
+        {image && <Image source={{ uri: image.uri }} style={{ width: 200, height: 200 }} />}
 
         <Button
         onPress={()=>{
@@ -221,5 +272,5 @@ export default function Examine({navigation}){
         style={style.chatSendButton}
         title={'제출하기'}/>
 
-    </View>);
+    </KeyboardAvoidingView>);
 }
